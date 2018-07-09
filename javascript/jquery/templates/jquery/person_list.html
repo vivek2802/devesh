@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <style>
+  .modal-header, h4, .close {
+      background-color: blue;
+      color:white !important;
+      text-align: center;
+      font-size: 30px;
+  }
+  .modal-footer {
+      background-color: #f9f9f9;
+  }
+</style>
+</head>
+
+
+<body>
+
+
+
+
+
+<div class="container">
+
+    <h5>PERSON REGISTRION</h5>
+  <!-- Trigger the modal with a button -->
+            <button type="button" class="btn btn-default btn-lg" id="myBtn">REGISTRION</button>
+
+  <!-- Modal -->
+            <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+            <div class="modal-content">
+                <div class="modal-header" style="padding:35px 50px;">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4> REGISTRATION</h4>
+            </div>
+            <div class="modal-body" style="padding:40px 50px;">
+
+            <form action="/form/" name="myForm" id="myForm"  method="post">
+                {% csrf_token %}
+                first_name: <input type="text" name="fname">
+                designation: <input type="text" name="desg">
+            <input type="submit" value="Submit">
+                </form>
+             </div>
+
+        </div>
+  </div>
+</div>
+
+  <!-- search button-->
+
+
+    <input type="text" id="myInput" onkeyup="myFunction()" placeholder="Search for names.." title="Type in a name">
+
+
+
+
+
+    <!--LIST-->
+
+    <div>
+
+         <h1>Details</h1>
+            <ul id="person">
+            {% for person in object_list %}
+             <li>{{person.id}} - <a class="name" data-id="{{person.id}}" > {{ person.first_name}}</a>  <b class="des">{{ person.designation }}</b>
+
+                 <button data-id="{{person.id}}" class="delete" type ="button"  >Delete </button>
+                 <button data-id="{{person.id}}" class="update" type ="button"  >Update </button></li>
+                    {% empty %}
+                <li>No records yet.</li>
+            {% endfor %}
+            </ul>
+            </div>
+              </div>
+
+
+
+
+<!--MODAL FOR UPDATE-->
+<div>
+
+  <!-- Modal -->
+    <div class="modal fade" id="myUpdateModal" role="dialog">
+        <div class="modal-dialog">
+
+      <!-- Modal content-->
+            <div class="modal-content">
+            <div class="modal-header" style="padding:35px 50px;">
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+            <h4> Update</h4>
+             </div>
+            <div class="modal-body" style="padding:40px 50px;">
+
+           <!--FORM-->
+
+                <form name="updateForm"  id="myUpdateForm" class="updateForm" method="post">
+                {% csrf_token %}
+                first_name: <input type="text" class="name" id="fn" name="fname1" >
+                designation: <input type="text" class="dsg" id="dsg" name="desg1">
+                <input type="submit" class="submit"  value="Update">
+                </form>
+             </div>
+
+    </div>
+  </div>
+</div>
+</div>
+
+
+
+<script>
+
+    $( document ).ready(function(){
+        $('#myForm').submit(function(event){
+            event.preventDefault();
+
+          $.ajax({
+            url : $('#myForm').attr('action'),
+            type: "POST",
+            data :$('#myForm').serialize() ,
+            success : function( data ) {
+            console.log(data)
+            $("#person").append('<li>' + data.person_id +' - ' +'<a>' +data.first_name + '</a>' + ' - ' + '<b>'+
+             data.designation + '</b>' +
+             '<button  data-id = '+ data.person_id +' class="delete"   >' +
+              'Delete' + '</button>' + '<button  data-id = '+ data.person_id  +' class="update"   >' +
+              'Update' + '</button>' + '</li>')
+            }
+
+
+            });
+        });
+
+    });
+
+
+
+
+
+
+        $('ul#person').on('click','button.delete', function(event){
+        id=$(this).data('id')
+        var name=$(this)
+        console.log(name);
+
+
+
+        $.ajax({
+            url : '/delete/' + id  ,
+            type : "POST",
+            data :('#person'),
+            beforeSend: function(xhr){
+            xhr.setRequestHeader("X-CSRFToken","{{csrf_token}}");
+            },
+            success : function(data) {
+                      $(name).parent('li').remove();
+
+                        },
+
+            });
+        });
+
+
+
+
+
+
+     $(document).ready(function(){
+        $("#myBtn").click(function(){
+        $("#myModal").modal({backdrop: 'static',
+    keyboard: false});
+    });
+      });
+
+
+
+
+
+
+
+
+
+    $('ul#person').on('click','button.update', function(event){
+                        event.preventDefault();
+                        $("#myUpdateModal").modal({backdrop: 'static', keyboard: false});
+                        Id=$(this).data('id');
+                        var Data=$(this);
+                        <!--console.log(Id)-->
+                        var first_name=$(this).siblings('a').text();
+                        var designation=$(this).siblings('b').text();
+                        $('.name').attr('value' , first_name );
+                        $('.dsg').attr('value', designation);
+                        console.log(first_name);
+                        console.log(designation);
+
+    $('#myUpdateForm').submit(function(ev){
+            ev.preventDefault();
+            $.ajax({
+                type:"POST",
+                url:'/update/' + Id,
+                data:$('#myUpdateForm').serialize(),
+                success:function(data){
+                var field=$(Data).parents("li");
+
+                $(Data).parents("li").empty();
+                var id=data.id;
+                $(field).append('<li>' + data.person_id +' - ' +'<a>' +data.first_name + '</a>' + ' - ' + '<b>'+
+             data.designation + '</b>' +
+             '<button  data-id = '+ data.person_id +' class="delete"   >' +
+              'Delete' + '</button>' + '<button  data-id = '+ data.person_id  +' class="update"   >' +
+              'Update' + '</button>' + '</li>');
+
+ },
+            });
+});
+        });
+
+
+
+
+
+
+    function myFunction() {
+
+                var input, filter, ul, li, a, i;
+                input = document.getElementById('myInput');
+                filter = input.value.toUpperCase();
+                ul = document.getElementById("person");
+                li = ul.getElementsByTagName('li');
+
+                // Loop through all list items, and hide those who don't match the search query
+
+                for (i = 0; i < li.length; i++) {
+                    a = li[i].getElementsByTagName("a")[0];
+                    if (a.innerHTML.toUpperCase().indexOf(filter) > -1) {
+                        li[i].style.display = "";
+                    } else {
+                        li[i].style.display = "none";
+                    }
+                }
+            }
+
+
+
+
+</script>
+
+
+</body>
+</html>
+
+

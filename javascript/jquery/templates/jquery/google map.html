@@ -1,0 +1,60 @@
+
+
+
+
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>My First Google Map</h1>
+
+<div id="googleMap" style="width:50%;height:400px;"></div>
+<div id="floating-panel">
+  <input id="address" type="textbox" value="Noida,india">
+  <input id="submit" type="button" value="Geocode">
+</div>
+
+<form action="/googlemap/" name="google_form" id="googel_form"  method="post">
+                Address: <input type="text" name="address">
+            <input type="submit" value="Submit">
+                </form>
+
+
+
+<script>
+
+function myMap() {
+var mapProp= {
+    center:new google.maps.LatLng(28.5355,77.3910),
+    zoom:8,
+};
+var map=new google.maps.Map(document.getElementById("googleMap"),mapProp);
+var marker = new google.maps.Marker({position: new google.maps.LatLng(28.5355,77.3910), map: map});
+var geocoder = new google.maps.Geocoder();
+document.getElementById('submit').addEventListener('click', function() {
+    geocodeAddress(geocoder, map);
+  });
+
+}
+
+function geocodeAddress(geocoder, resultsMap) {
+  var address = document.getElementById('address').value;
+  geocoder.geocode({'address': address}, function(results, status) {
+    if (status === 'OK') {
+      resultsMap.setCenter(results[0].geometry.location);
+      var marker = new google.maps.Marker({
+        map: resultsMap,
+        position: results[0].geometry.location
+      });
+    } else {
+      alert('Geocode was not successful for the following reason: ' + status);
+    }
+  });
+}
+
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAjZlNb8Y8wMIze8TXxQS060Yho7kZsCQ8&callback=myMap"></script>
+
+</body>
+</html>

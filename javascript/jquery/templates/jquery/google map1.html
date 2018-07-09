@@ -1,0 +1,243 @@
+
+
+
+
+<!DOCTYPE html>
+<html>
+<body>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+
+
+
+<style>
+  .modal-header, h4, .close {
+      background-color: blue;
+      color:white !important;
+      text-align: center;
+      font-size: 30px;
+  }
+  .modal-footer {
+      background-color: #f9f9f9;
+  }
+</style>
+</head>
+
+<h1>My First Google Map</h1>
+
+<div id="map-canvas" style="width:50%;height:400px;"></div>
+
+
+
+        <form  name="google_form"  id="google_form"  method="post">
+           {% csrf_token %}
+                address: <input type="text" name="address" class="google_form"  readonly="true">
+                postal_code:<input type="text" name="address1" class="address1" id="postal_code" readonly="true">
+                country:<input type="text" name="address2" class="address2" id=country readonly="true">
+                <input type="submit" value="Submit">
+        </form>
+
+        <div>
+            <h1>Details</h1>
+            <ul id="map">
+                {% for map in map %}
+                 <li><a class="address" data-id="{{map.id}}" > Complete address----{{ map.address}}</a>
+                     <p class="country">Country---{{ map.country }}</p>
+                     <p class="postal_code">Postal code---{{map.postal_code}}</p>
+                     <button data-id="{{map.id}}" class="delete" type ="button"  >Delete </button>
+                     <button data-id="{{map.id}}" class="update"  >Update </button>
+                 </li>
+                        {% empty %}
+                    <li>No records yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+
+
+
+
+        <div>
+             <!-- Modal -->
+            <div class="modal fade" id="mapUpdateModal" role="dialog">
+                <div class="modal-dialog">
+              <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header" style="padding:35px 50px;">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4> Update</h4>
+                    </div>
+
+                    <div class="modal-body" style="padding:40px 50px;">
+
+                   <!--FORM-->
+
+                        <form name="mapUpdateForm"  id="mapUpdateForm" class="mapUpdateForm" method="post">
+                        {% csrf_token %}
+                        address: <input type="text" class="name" id="fn" name="fname1" >
+                        postal_code: <input type="text" class="dsg" id="dsg" name="desg1">
+                            country:<input type="text" class="country" id="count" name="country">
+                        <input type="submit" class="submit"  value="Update">
+                        </form>
+
+
+                        <!---modal map--->
+
+
+
+
+
+
+
+                     </div>
+                </div>
+            </div>
+        </div>
+
+
+
+
+
+
+
+<script id="googlemap">
+
+var componentForm={
+
+     country: 'long_name',
+     postal_code: 'short_name'
+      };
+
+
+
+
+function myMap() {
+var myLatlng = new google.maps.LatLng(28.5355, 77.3910);
+var myOptions = {
+  zoom: 13,
+  center: myLatlng
+}
+var map = new google.maps.Map(document.getElementById("map-canvas"), myOptions);
+var marker = new google.maps.Marker({position: new google.maps.LatLng(28.5355,77.3910), map: map});
+var geocoder = new google.maps.Geocoder();
+
+
+google.maps.event.addListener(map, 'click', function(event) {
+  geocoder.geocode({
+    'latLng': event.latLng
+  }, function(results, status) {
+    if (status == google.maps.GeocoderStatus.OK) {
+      if (results[0]) {
+      console.log((results[0].address_components).length)
+
+      lng= results[0].geometry.location.lng();
+      lat=results[0].geometry.location.lat();
+      lngrad= lng*((Math.PI)/180);
+      latrad=lat*((Math.PI)/180);
+
+      noida_lat=28.5355*((Math.PI)/180);
+      noida_lng=77.3910*((Math.PI)/180);
+
+      dif_lat=(noida_lat-latrad)
+      dif_lng=(noida_lng-lngrad)
+      var a = Math.sin(dif_lat/2) * Math.sin(dif_lat/2) +
+        Math.cos(latrad) * Math.cos(noida_lat) *
+        Math.sin(dif_lng/2) * Math.sin(dif_lng/2);
+        var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)) ;
+        distance=6371e3*c
+        alert("Distance of clicked position from noida is"+" "  + parseInt(distance)+ " meter")
+      var marker = new google.maps.Marker({
+        map: map,
+        title: results[0],
+        position: results[0].geometry.location
+      });
+      cordi= (lat)+ ',' +(lng)
+      console.log(lat);
+      console.log(lng);
+
+      for (var i = 0; i < results[0].address_components.length; i++) {
+      var AddressType = results[0].address_components[i].types[0];
+
+      if (componentForm[AddressType]) {
+      var val = results[0].address_components[i][componentForm[AddressType]];
+      alert(val)
+      if (val=='null'){document.getElementById(AddressType).value="undefined"}
+      else{
+      document.getElementById(AddressType).value = val;}
+      }
+      console.log(AddressType)}
+      console.log(results[0].formatted_address)
+      $('.google_form').attr('value' ,results[0].formatted_address );
+
+
+
+      }
+    }
+  });
+});
+};
+
+
+</script>
+<script>
+     $( document ).ready(function(){
+        $('#google_form').submit(function(event){
+            event.preventDefault();
+
+          $.ajax({
+            url : '/map/',
+            type: "POST",
+            data :$('#google_form').serialize() ,
+            success : function( data ) {
+            console.log(data)
+            $("#map").append('<li>' +'<a>' +'Complete address' +'---'+ data.address + '</a>' + '<p>'+'Country'+'---'+
+             data.country + '</p>' +'<p>'+'Postal_code---'+ data.postal_code +'</p>'+
+             '<button  data-id = '+ data.map_id +' class="delete"   >' +
+              'Delete' + '</button>' + '<button  data-id = '+ data.map_id  +' class="update"   >' +
+              'Update' + '</button>' + '</li>')
+            }
+
+
+            });
+        });
+
+    });
+
+
+ $('ul#map').on('click','button.delete', function(event){
+        id=$(this).data('id')
+        var address=$(this)
+
+
+
+        $.ajax({
+            url : '/delete1/' + id  ,
+            type : "POST",
+            data :('#map'),
+            beforeSend: function(xhr){
+            xhr.setRequestHeader("X-CSRFToken","{{csrf_token}}");
+            },
+            success : function(data) {
+                      $(address).parent('li').remove();
+                        },
+
+            });
+        });
+</script>
+
+<script>
+     $(document).ready(function(){
+        $(".update").click(function(){
+        $("#mapUpdateModal").modal({backdrop: 'static'});
+    });
+      });
+
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAjZlNb8Y8wMIze8TXxQS060Yho7kZsCQ8&callback=myMap"></script>
+
+</body>
+</html>
