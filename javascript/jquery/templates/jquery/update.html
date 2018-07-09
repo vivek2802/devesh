@@ -4,3 +4,52 @@
     designation: <input type="text" name="designation">
     <input type="submit" value="Submit" />
 </form>
+
+
+
+<div>
+             <!-- Modal -->
+            <div class="modal fade" id="mapUpdateModal" role="dialog">
+                <div class="modal-dialog">
+              <!-- Modal content-->
+                    <div class="modal-content">
+                        <div class="modal-header" style="padding:35px 50px;">
+                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                        <h4> Update</h4>
+                    </div>
+
+                    <div class="modal-body" style="padding:40px 50px;">
+
+                   <!--FORM-->
+
+                        <form name="mapUpdateForm"  id="mapUpdateForm" class="mapUpdateForm" method="post">
+                        {% csrf_token %}
+                        address: <input type="text" class="name" id="fn" name="fname1" >
+                        postal_code: <input type="text" class="dsg" id="dsg" name="desg1">
+                            country:<input type="text" class="country" id="count" name="country">
+                        <input type="submit" class="submit"  value="Update">
+                        </form>
+
+
+                        <!---modal map--->
+
+
+
+
+
+
+
+                     </div>
+                </div>
+            </div>
+        </div>
+
+
+    <script>
+     $(document).ready(function(){
+        $(".update").click(function(){
+        $("#mapUpdateModal").modal({backdrop: 'static'});
+    });
+      });
+
+</script>
